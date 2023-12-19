@@ -10,7 +10,7 @@ def nginx_stats():
     '''
     import pymongo
 
-    client = pymongo.MongoClient()
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client["logs"]
     collection = db["nginx"]
 
@@ -24,7 +24,7 @@ def nginx_stats():
 
     print("Methods:")
     for method, count in method_counts.items():
-        print(f"    method {method}: {count}")
+        print(f"\tmethod {method}: {count}")
 
     status_check_count = collection.count_documents({
         "method": "GET", "path": "/status"})
