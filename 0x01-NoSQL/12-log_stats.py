@@ -10,7 +10,7 @@ def nginx_stats():
     '''
     import pymongo
 
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    client = pymongo.MongoClient()
     db = client["logs"]
     collection = db["nginx"]
 
