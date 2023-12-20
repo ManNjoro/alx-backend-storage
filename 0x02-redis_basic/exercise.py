@@ -5,6 +5,7 @@ A script to interface with Redis and store data with random keys
 import redis
 import uuid
 from typing import Union, Callable, Any
+import functools
 
 
 class Cache:
@@ -20,6 +21,23 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @staticmethod
+    def count_calls(method: Callable) -> Callable:
+        """
+        Decorator to count the number of times a method is called.
+        """
+        @functools.wraps(method)
+        def wrapper(self, *args, **kwargs):
+            # Generate the key using the method's qualified name
+            key = method.__qualname__
+            # Increment the count for the key
+            self._redis.incr(key)
+            # Call the original method and return its result
+            return method(self, *args, **kwargs)
+
+        return wrapper
+
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Store data in Redis with a random key.
