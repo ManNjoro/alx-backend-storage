@@ -13,13 +13,28 @@ def count_calls(method: Callable) -> Callable:
     Decorator to count the number of times a method is called.
     """
     @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        # Generate the key using the method's qualified name
-        key = method.__qualname__
-        # Increment the count for the key
-        self._redis.incr(key)
-        # Call the original method and return its result
+    def wrapper(self, *args, **kwargs) -> Any:
+        if isinstance(self._redis, redis.Redis):
+            self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
+    return wrapper
+
+
+def call_history(method: Callable) -> Callable:
+    '''Tracks the call details of a method in a Cache class.
+    '''
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs) -> Any:
+        '''Returns the method's output after storing its inputs and output.
+        '''
+        in_key = '{}:inputs'.format(method.__qualname__)
+        out_key = '{}:outputs'.format(method.__qualname__)
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(in_key, str(args))
+        output = method(self, *args, **kwargs)
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(out_key, output)
+        return output
     return wrapper
 
 
@@ -36,6 +51,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
