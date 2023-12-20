@@ -9,5 +9,5 @@ $ sed -i "s/bind .*/bind 127.0.0.1/g" /etc/redis/redis.conf
 ```
 ## Use Redis in a container
 ```
-service redis-server start
+sudo service redis-server start
 ```
