@@ -4,7 +4,7 @@ A script to interface with Redis and store data with random keys
 '''
 import redis
 import uuid
-from typing import Union
+from typing import Union, Callable, Any
 
 
 class Cache:
@@ -37,3 +37,24 @@ class Cache:
 
         # Return the generated key
         return key
+
+    def get(self, key: str, fn: Callable[[bytes], Any] = None) -> Any:
+        """
+        Retrieve data from Redis based on the given key.
+        """
+        data = self._redis.get(key)
+        if data is None:
+            return None
+        return fn(data) if fn else data
+
+    def get_str(self, key: str) -> Union[str, None]:
+        """
+        Retrieve a string value from Redis based on the given key.
+        """
+        return self.get(key, fn=lambda d: d.decode("utf-8"))
+
+    def get_int(self, key: str) -> Union[int, None]:
+        """
+        Retrieve an integer value from Redis based on the given key.
+        """
+        return self.get(key, fn=int)
